@@ -80,5 +80,93 @@ namespace FilmFestivalOrganiser
 
             return movie;
         }
+
+        public static void CalculateAllCombinationsOfMovies(Dictionary<string, HashSet<Movie>> allMoviesWithAllTimes)
+        {
+            var builtUpList = new HashSet<HashSet<Movie>>();
+            foreach (var currentList in allMoviesWithAllTimes.Take(14))
+            {
+                HashSet<HashSet<Movie>> oldBuiltUpList = new HashSet<HashSet<Movie>>();
+                if (builtUpList.Count != 0)
+                {
+                    oldBuiltUpList = new HashSet<HashSet<Movie>>(builtUpList.Select(i => new HashSet<Movie>(i)));
+                }
+                var firstItem = true;
+                foreach (var currentItem in currentList.Value)
+                {
+                    var anyListContaining = false;
+
+                    if (firstItem)
+                    {
+                        foreach (var beingBuiltList in builtUpList)
+                        {
+                            if (!beingBuiltList.Intersect(currentList.Value).Any())
+                            {
+                                beingBuiltList.Add(currentItem);
+                                anyListContaining = true;
+                            }
+                        }
+                        firstItem = false;
+                    }
+                    if (oldBuiltUpList.Count != 0)
+                    {
+                        if (!anyListContaining)
+                        {
+                            var backUpOldList = new HashSet<HashSet<Movie>>(oldBuiltUpList.Select(i => new HashSet<Movie>(i)));
+                            foreach (var oldList in backUpOldList)
+                            {
+                                oldList.Add(currentItem);
+                            }
+                            foreach (var oldList in backUpOldList)
+                            {
+                                builtUpList.Add(oldList);
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        builtUpList.Add(new HashSet<Movie>(new HashSet<Movie> { currentItem }));
+                    }
+                }
+            }
+            Console.WriteLine(builtUpList.Count);
+        }
+
+        public static IEnumerable<Movie[]> MethodTwo(HashSet<HashSet<Movie>> inputs)
+        {
+            var lengths = inputs.Select(i => i.Count).ToArray();
+            var periods = new int[inputs.Count];
+            periods[0] = 1;
+            for (int i = 1; i < periods.Length; i++)
+            {
+                periods[i] = periods[i - 1] * lengths[i - 1];
+            }
+
+            var totalCombinations = periods.Last() * lengths.Last();
+            var combinationEnumerators = inputs.Select((movieTimes, index) => PeriodicallyRepeat(movieTimes, periods[index]).GetEnumerator()).ToArray();
+
+            for (long i = 0; i < totalCombinations; i++)
+            {
+                var validMovieCombination = combinationEnumerators.Select(movieTimes =>
+                {
+                    movieTimes.MoveNext();
+                    return movieTimes.Current;
+                }).ToArray();
+                yield return validMovieCombination;
+            }
+        }
+
+        static IEnumerable<Movie> PeriodicallyRepeat(IEnumerable<Movie> movieTimes, int period)
+        {
+            for (; ; )
+            {
+                var thing = movieTimes.SelectMany(movie => Enumerable.Repeat(movie, period));
+                foreach (var movie in movieTimes.SelectMany(movie => Enumerable.Repeat(movie, period)))
+                {
+                    yield return movie;
+                }
+            }
+        }
     }
 }
