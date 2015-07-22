@@ -161,7 +161,6 @@ namespace FilmFestivalOrganiser
         {
             for (; ; )
             {
-                var thing = movieTimes.SelectMany(movie => Enumerable.Repeat(movie, period));
                 foreach (var movie in movieTimes.SelectMany(movie => Enumerable.Repeat(movie, period)))
                 {
                     yield return movie;
