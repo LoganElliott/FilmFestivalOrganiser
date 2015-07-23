@@ -19,7 +19,6 @@ namespace FilmFestivalOrganiser
 
         private static int overlap = 0;
         private static int workClash = 0;
-        private static int ashClash = 0;
         private static void CheckForValidSetOfMovies(IEnumerable<Movie[]> setsOfMovies)
         {
             var validMovies = new List<Movie[]>();
@@ -32,18 +31,13 @@ namespace FilmFestivalOrganiser
                 for (int i = 1; i < orderedMovies.Count(); i++)
                 {
                     var currentMovie = orderedMovies[i];
-                    if (previousMovie.StartDate + previousMovie.Duration > currentMovie.StartDate)
+                    if (previousMovie.StartDate + previousMovie.Duration > currentMovie.StartDate || !MeetsDateTimeFilters(currentMovie))
                     {
                         overlap++;
                         validMovieSet = false;
                         break;
                     }
-                    if (!MeetsDateTimeFilters(currentMovie))
-                    {
-                        validMovieSet = false;
-                        break;
-                    }
-                }
+                 }
                 if (validMovieSet)
                 {
                     validMovies.Add(orderedMovies);
@@ -52,32 +46,30 @@ namespace FilmFestivalOrganiser
             }
         }
 
+        //Hard coded filters to see actual program results 
         private static bool MeetsDateTimeFilters(Movie currentMovie)
         {
-            var earliestTime = new TimeSpan(0,9,0);
-            var latestTime = new TimeSpan(0,16,30);
-            bool meetsFilters = true;
+            var earliestTime = new TimeSpan(9,0,0);
+            var latestTime = new TimeSpan(16,25,0);
 
-            if (currentMovie.StartDate.DayOfWeek == DayOfWeek.Saturday && currentMovie.StartDate.TimeOfDay < new TimeSpan(0, 19, 0))
+            bool duringSaturdayWorkHours = currentMovie.StartDate.DayOfWeek == DayOfWeek.Saturday && currentMovie.StartDate.TimeOfDay < new TimeSpan(19,0, 0);
+            if (duringSaturdayWorkHours)
             {
-                //meetsFilters = false;
-                ashClash++;
+                return false;
             }
 
-            if (currentMovie.StartDate.DayOfWeek != DayOfWeek.Sunday && currentMovie.StartDate.DayOfWeek != DayOfWeek.Saturday)
+            bool isASaturday = currentMovie.StartDate.DayOfWeek == DayOfWeek.Saturday;
+            bool isASunday = currentMovie.StartDate.DayOfWeek == DayOfWeek.Sunday;
+            bool isWeekend = isASaturday || isASunday;
+
+            bool startsDuringWork = currentMovie.StartDate.TimeOfDay > earliestTime ;
+            bool stillRunningDuringWork = (currentMovie.StartDate + currentMovie.Duration).TimeOfDay > earliestTime;
+            if (!isWeekend && (startsDuringWork || stillRunningDuringWork) && currentMovie.StartDate.TimeOfDay < latestTime)
             {
-                if (currentMovie.StartDate.TimeOfDay > earliestTime && currentMovie.StartDate.TimeOfDay < latestTime)
-                {
-                    meetsFilters = false;
                     workClash++;
-                }
-                else if ((currentMovie.StartDate + currentMovie.Duration).TimeOfDay > earliestTime)
-                {
-                    meetsFilters = false;
-                    workClash++;
-                }
+                    return false;
             }
-            return meetsFilters;
+            return true;
         }
     }
 }
