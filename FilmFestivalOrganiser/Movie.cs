@@ -12,7 +12,7 @@ namespace FilmFestivalOrganiser
 
         public override string ToString()
         {
-            return String.Format(Title, StartDate, Duration, Location, WebsiteUrl);
+            return String.Format("Title: {0} Start Date: {1} Duration: {2} Location: {3} WebsiteUrl: {4}",Title, StartDate, Duration, Location, WebsiteUrl);
         }
     }
 }
