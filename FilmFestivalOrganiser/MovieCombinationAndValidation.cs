@@ -90,5 +90,11 @@ namespace FilmFestivalOrganiser
             }
             return true;
         }
+
+        public static MovieDay[] GroupMoviesUpByDate(Movie[] validMovieOrder)
+        {
+            return validMovieOrder.GroupBy(movie => movie.StartDate.Date).Select(moviesForADay => new MovieDay(moviesForADay.ToArray())).ToArray();
+
+        }
     }
 }
