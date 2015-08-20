@@ -4,22 +4,22 @@ using HtmlAgilityPack;
 
 namespace FilmFestivalOrganiser
 {
-    public class GetMoviesFromWatchlistUrl
+    public class GetMoviesFromWishlistUrl
     {
-        public static HashSet<Movie> GetMoviesFromWatchlist(string watchlistUrl)
+        public static HashSet<Movie> GetMoviesFromWishlist(string wishlistUrl)
         {
-            var rawMoviesCollection = GetRawMoviesHtml(watchlistUrl);
-            return ExtractWatchlistMoviesFromHtml(rawMoviesCollection);
+            var rawMoviesCollection = GetRawMoviesHtml(wishlistUrl);
+            return ExtractwishlistMoviesFromHtml(rawMoviesCollection);
         }
 
-        private static HtmlNodeCollection GetRawMoviesHtml(string watchlistUrl)
+        private static HtmlNodeCollection GetRawMoviesHtml(string wishlistUrl)
         {
             var web = new HtmlWeb();
-            var watchListWebsitePageDocument = web.Load(watchlistUrl);
-            return watchListWebsitePageDocument.DocumentNode.SelectNodes("//*[@class='" + "session-info film-info" + "']");
+            var wishListWebsitePageDocument = web.Load(wishlistUrl);
+            return wishListWebsitePageDocument.DocumentNode.SelectNodes("//*[@class='" + "session-info film-info" + "']");
         }
 
-        private static HashSet<Movie> ExtractWatchlistMoviesFromHtml(HtmlNodeCollection rawMoviesCollection)
+        private static HashSet<Movie> ExtractwishlistMoviesFromHtml(HtmlNodeCollection rawMoviesCollection)
         {
             const string mainSiteUrl = "http://www.nziff.co.nz";
             var movies = new HashSet<Movie>();

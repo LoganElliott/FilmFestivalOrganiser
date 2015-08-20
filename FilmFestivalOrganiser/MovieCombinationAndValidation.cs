@@ -51,7 +51,7 @@ namespace FilmFestivalOrganiser
                 for (int i = 1; i < orderedMovies.Count(); i++)
                 {
                     var currentMovie = orderedMovies[i];
-                    bool doesNotClashWithAnyOtherMovie = previousMovie.StartDate + previousMovie.Duration > currentMovie.StartDate;
+                    bool doesNotClashWithAnyOtherMovie = previousMovie.StartDate + previousMovie.DurationForFilter > currentMovie.StartDate;
                     if (doesNotClashWithAnyOtherMovie || !MeetsDateTimeFilters(currentMovie))
                     {
                         validMovieSet = false;
@@ -83,7 +83,7 @@ namespace FilmFestivalOrganiser
             bool isWeekend = isASaturday || isASunday;
 
             bool startsDuringWork = currentMovie.StartDate.TimeOfDay > earliestTime;
-            bool stillRunningDuringWork = (currentMovie.StartDate + currentMovie.Duration).TimeOfDay > earliestTime;
+            bool stillRunningDuringWork = (currentMovie.StartDate + currentMovie.DurationForFilter).TimeOfDay > earliestTime;
             if (!isWeekend && (startsDuringWork || stillRunningDuringWork) && currentMovie.StartDate.TimeOfDay < latestTime)
             {
                 return false;

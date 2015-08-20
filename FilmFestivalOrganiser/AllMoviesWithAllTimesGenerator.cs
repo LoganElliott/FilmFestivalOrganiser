@@ -8,10 +8,10 @@ namespace FilmFestivalOrganiser
 {
     public class AllMoviesWithAllTimesGenerator
     {
-        public static Dictionary<string, HashSet<Movie>> GetAllMovieTimesForWatchlistMovies(HashSet<Movie> moviesFromWatchlist)
+        public static Dictionary<string, HashSet<Movie>> GetAllMovieTimesForWishlistMovies(HashSet<Movie> moviesFromwishlist)
         {
             var dictionary = new Dictionary<string, HashSet<Movie>>();
-            foreach (var movie in moviesFromWatchlist)
+            foreach (var movie in moviesFromwishlist)
             {
                 var allMovieTimes = GetAllMovieTimes(movie);
                 dictionary.Add(allMovieTimes.First().Title, allMovieTimes);
@@ -19,15 +19,15 @@ namespace FilmFestivalOrganiser
             return dictionary;
         }
 
-        private static HashSet<Movie> GetAllMovieTimes(Movie currentWatchlistMovie)
+        private static HashSet<Movie> GetAllMovieTimes(Movie currentwishlistMovie)
         {
             var web = new HtmlWeb();
             var movieAndTimes = new HashSet<Movie>();
-            var movieWebsiteDocument = web.Load(currentWatchlistMovie.WebsiteUrl.ToString());
+            var movieWebsiteDocument = web.Load(currentwishlistMovie.WebsiteUrl.ToString());
             var movieMetaDetails = movieWebsiteDocument.DocumentNode.SelectSingleNode("//*[@class='session-table']").SelectNodes("tr/td/table/tr/td/p");
             foreach (var movieMetaDetail in movieMetaDetails)
             {
-                var movie = CreateMovie(movieMetaDetail, currentWatchlistMovie);
+                var movie = CreateMovie(movieMetaDetail, currentwishlistMovie);
                 movieAndTimes.Add(movie);
             }
             return movieAndTimes;
@@ -44,7 +44,8 @@ namespace FilmFestivalOrganiser
                 Title = movieDictionaryItem.Title,
                 WebsiteUrl = movieDictionaryItem.WebsiteUrl,
                 Location = location,
-                Duration = TimeSpan.FromMinutes(Int64.Parse(duration)),
+                Duration = duration,
+                DurationForFilter = TimeSpan.FromMinutes(Int64.Parse(duration)),
                 StartDate = DateTime.ParseExact(startDate, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)
             };
 

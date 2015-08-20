@@ -6,7 +6,8 @@ namespace FilmFestivalOrganiser
     {
         public string Title { get; set; }
         public DateTime StartDate { get; set; }
-        public TimeSpan Duration { get; set; }
+        public string Duration { get; set; }
+        internal TimeSpan DurationForFilter { get; set; } 
         public string Location { get; set; }
         public Uri WebsiteUrl { get; set; }
 
