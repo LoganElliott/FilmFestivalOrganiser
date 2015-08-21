@@ -23,6 +23,8 @@ namespace FilmFestivalOrganiserWebService
             };
 
             Get["/test"] = _ => "Looks like in your in the right part of town";
+
+            Get["/"] = _ => View["index"];
         }
     }
 }
