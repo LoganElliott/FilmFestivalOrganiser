@@ -5,14 +5,17 @@ namespace FilmFestivalOrganiser
     public class DayTimeFilter
     {
         public DayOfWeek DayOfWeek { get; set; }
-        public DateTime MinStartTime { get; set; }
-        public DateTime MaxEndTime { get; set; }
+        public TimeSpan MinStartTime { get; set; }
+        public TimeSpan MaxEndTime { get; set; }
+        public bool DisallowedDay { get; set; }
 
-        public DayTimeFilter(DayOfWeek dayOfWeek,DateTime minStartTime,DateTime maxEndTime)
+        public DayTimeFilter(DayOfWeek dayOfWeek)
         {
+            
             DayOfWeek = dayOfWeek;
-            MinStartTime = minStartTime;
-            MaxEndTime = maxEndTime;
+            MinStartTime = new TimeSpan(0,0,0);
+            MaxEndTime = new TimeSpan(24, 0, 0);
+            DisallowedDay = false;
         }
     }
 }

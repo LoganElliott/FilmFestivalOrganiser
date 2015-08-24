@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using FilmFestivalOrganiser;
 using Nancy;
@@ -11,14 +13,18 @@ namespace FilmFestivalOrganiserWebService
         
         public OrgansiserNancySite()
         {
+          
            Get["/getWishlistJson/{wishlistId}"] = parameters =>
             {
-                var wishlistUrl = @"http://www.nziff.co.nz/s/" + parameters.wishlistId;
-                var moviesDictionary = GetMoviesFromWishlistUrl.GetMoviesFromWishlist(wishlistUrl);
-                Dictionary<string, HashSet<Movie>> allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary);
-                var setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new HashSet<HashSet<Movie>>(allMoviesWithAllTimes.Values));
-                var validMovieOrder = MovieCombinationAndValidation.CheckForValidSetOfMovies(setsOfMovies).First();
-                var moviesGroupedByDay = MovieCombinationAndValidation.GroupMoviesUpByDate(validMovieOrder);
+                StaticConfiguration.DisableErrorTraces = false;
+
+                string wishlistUrl = @"http://www.nziff.co.nz/s/" + parameters.wishlistId;
+                Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters = CreateFiltersForEachDay.CreateDayFilters(Request);
+                HashSet<Movie> moviesDictionary = GetMoviesFromWishlistUrl.GetMoviesFromWishlist(wishlistUrl);
+                Dictionary<string, HashSet<Movie>> allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary, dayTimeFilters);
+                IEnumerable<Movie[]> setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new HashSet<HashSet<Movie>>(allMoviesWithAllTimes.Values));
+                Movie[] validMovieOrder = MovieCombinationAndValidation.CheckForValidSetOfMovies(setsOfMovies, dayTimeFilters).First();
+                MovieDay[] moviesGroupedByDay = MovieCombinationAndValidation.GroupMoviesUpByDate(validMovieOrder);
                 return JsonConvert.SerializeObject(moviesGroupedByDay);
             };
 

@@ -8,18 +8,18 @@ namespace FilmFestivalOrganiser
 {
     public class AllMoviesWithAllTimesGenerator
     {
-        public static Dictionary<string, HashSet<Movie>> GetAllMovieTimesForWishlistMovies(HashSet<Movie> moviesFromwishlist)
+        public static Dictionary<string, HashSet<Movie>> GetAllMovieTimesForWishlistMovies(HashSet<Movie> moviesFromwishlist, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
             var dictionary = new Dictionary<string, HashSet<Movie>>();
             foreach (var movie in moviesFromwishlist)
             {
-                var allMovieTimes = GetAllMovieTimes(movie);
+                var allMovieTimes = GetAllMovieTimes(movie, dayTimeFilters);
                 dictionary.Add(allMovieTimes.First().Title, allMovieTimes);
             }
             return dictionary;
         }
 
-        private static HashSet<Movie> GetAllMovieTimes(Movie currentwishlistMovie)
+        private static HashSet<Movie> GetAllMovieTimes(Movie currentwishlistMovie, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
             var web = new HtmlWeb();
             var movieAndTimes = new HashSet<Movie>();
@@ -27,18 +27,21 @@ namespace FilmFestivalOrganiser
             var movieMetaDetails = movieWebsiteDocument.DocumentNode.SelectSingleNode("//*[@class='session-table']").SelectNodes("tr/td/table/tr/td/p");
             foreach (var movieMetaDetail in movieMetaDetails)
             {
-                var movie = CreateMovie(movieMetaDetail, currentwishlistMovie);
-                movieAndTimes.Add(movie);
+                var movie = CreateMovie(movieMetaDetail, currentwishlistMovie, dayTimeFilters);
+                if (MovieCombinationAndValidation.MeetsDateTimeFilters(movie, dayTimeFilters[movie.StartDate.DayOfWeek]))
+                {
+                    movieAndTimes.Add(movie);
+                }
             }
             return movieAndTimes;
         }
 
-        private static Movie CreateMovie(HtmlNode movieMetaDetail, Movie movieDictionaryItem)
+        private static Movie CreateMovie(HtmlNode movieMetaDetail, Movie movieDictionaryItem, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
             var location = movieMetaDetail.SelectSingleNode("span[@itemprop='location']").InnerText;
             var duration = movieMetaDetail.SelectSingleNode("meta[@itemprop='duration']").Attributes.Last().Value.Replace("PT", "").Replace("M", "");
             var startDate = movieMetaDetail.SelectSingleNode("meta[@itemprop='startDate']").Attributes.Last().Value;
-
+            
             var movie = new Movie
             {
                 Title = movieDictionaryItem.Title,
@@ -48,7 +51,6 @@ namespace FilmFestivalOrganiser
                 DurationForFilter = TimeSpan.FromMinutes(Int64.Parse(duration)),
                 StartDate = DateTime.ParseExact(startDate, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)
             };
-
             return movie;
         }
     }

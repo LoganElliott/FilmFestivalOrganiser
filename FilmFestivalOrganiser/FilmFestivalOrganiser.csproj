@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CreateFiltersForEachDay.cs" />
     <Compile Include="DayTimeFilter.cs" />
     <Compile Include="Movie.cs" />
     <Compile Include="MovieCombinationAndValidation.cs" />

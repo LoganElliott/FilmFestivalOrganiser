@@ -41,7 +41,24 @@ namespace FilmFestivalOrganiser
             }
         }
 
-        public static IEnumerable<Movie[]> CheckForValidSetOfMovies(IEnumerable<Movie[]> setsOfMovies)
+        public static Dictionary<string, HashSet<Movie>> ApplyMovieTimeFilter(Dictionary<string, HashSet<Movie>> allMoviesWithAllTimes,
+            Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
+        {
+            var updatedAllMoviesWithAllTimes = new Dictionary<string, HashSet<Movie>>(allMoviesWithAllTimes);
+            foreach (var movieAndTimes in allMoviesWithAllTimes)
+            {
+                foreach (var movie in movieAndTimes.Value)
+                {
+                    if (!MeetsDateTimeFilters(movie, dayTimeFilters[movie.StartDate.DayOfWeek]))
+                    {
+                        updatedAllMoviesWithAllTimes[movieAndTimes.Key].Remove(movie);
+                    }
+                }
+            }
+            return updatedAllMoviesWithAllTimes;
+        }
+
+        public static IEnumerable<Movie[]> CheckForValidSetOfMovies(IEnumerable<Movie[]> setsOfMovies, Dictionary<DayOfWeek,DayTimeFilter> dayTimeFilters)
         {
             foreach (var setOfMovies in setsOfMovies)
             {
@@ -51,8 +68,7 @@ namespace FilmFestivalOrganiser
                 for (int i = 1; i < orderedMovies.Count(); i++)
                 {
                     var currentMovie = orderedMovies[i];
-                    bool doesNotClashWithAnyOtherMovie = previousMovie.StartDate + previousMovie.DurationForFilter > currentMovie.StartDate;
-                    if (doesNotClashWithAnyOtherMovie || !MeetsDateTimeFilters(currentMovie))
+                    if (previousMovie.StartDate + previousMovie.DurationForFilter > currentMovie.StartDate)
                     {
                         validMovieSet = false;
                         break;
@@ -67,27 +83,27 @@ namespace FilmFestivalOrganiser
         }
 
         //Hard coded filters to see actual program results 
-        public static bool MeetsDateTimeFilters(Movie currentMovie)
+        public static bool MeetsDateTimeFilters(Movie currentMovie, DayTimeFilter dayTimeFilters)
         {
-            var earliestTime = new TimeSpan(9, 0, 0);
-            var latestTime = new TimeSpan(16, 25, 0);
-
-            bool duringSaturdayWorkHours = currentMovie.StartDate.DayOfWeek == DayOfWeek.Saturday && currentMovie.StartDate.TimeOfDay < new TimeSpan(19, 0, 0);
-            if (duringSaturdayWorkHours)
+            var movieStartTime = currentMovie.StartDate.TimeOfDay;
+            
+            if (dayTimeFilters.DisallowedDay)
             {
                 return false;
             }
 
-            bool isASaturday = currentMovie.StartDate.DayOfWeek == DayOfWeek.Saturday;
-            bool isASunday = currentMovie.StartDate.DayOfWeek == DayOfWeek.Sunday;
-            bool isWeekend = isASaturday || isASunday;
-
-            bool startsDuringWork = currentMovie.StartDate.TimeOfDay > earliestTime;
-            bool stillRunningDuringWork = (currentMovie.StartDate + currentMovie.DurationForFilter).TimeOfDay > earliestTime;
-            if (!isWeekend && (startsDuringWork || stillRunningDuringWork) && currentMovie.StartDate.TimeOfDay < latestTime)
+            //Does movie start to early
+            if (movieStartTime < dayTimeFilters.MinStartTime)
             {
                 return false;
             }
+
+            //Does movie start or end to late
+            if (movieStartTime > dayTimeFilters.MaxEndTime || (movieStartTime + currentMovie.DurationForFilter) > dayTimeFilters.MaxEndTime)
+            {
+                return false;
+            }
+
             return true;
         }
 
