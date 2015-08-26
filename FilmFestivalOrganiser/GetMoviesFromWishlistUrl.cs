@@ -6,29 +6,29 @@ namespace FilmFestivalOrganiser
 {
     public class GetMoviesFromWishlistUrl
     {
-        public static HashSet<Movie> GetMoviesFromWishlist(string wishlistUrl)
+        public static List<Movie> GetMoviesFromWishlist(string wishlistUrl)
         {
             var rawMoviesCollection = GetRawMoviesHtml(wishlistUrl);
             return ExtractwishlistMoviesFromHtml(rawMoviesCollection);
         }
 
-        private static HtmlNodeCollection GetRawMoviesHtml(string wishlistUrl)
+        private static IEnumerable<HtmlNode> GetRawMoviesHtml(string wishlistUrl)
         {
             var web = new HtmlWeb();
             var wishListWebsitePageDocument = web.Load(wishlistUrl);
             return wishListWebsitePageDocument.DocumentNode.SelectNodes("//*[@class='" + "session-info film-info" + "']");
         }
 
-        private static HashSet<Movie> ExtractwishlistMoviesFromHtml(HtmlNodeCollection rawMoviesCollection)
+        private static List<Movie> ExtractwishlistMoviesFromHtml(IEnumerable<HtmlNode> rawMoviesCollection)
         {
             const string mainSiteUrl = "http://www.nziff.co.nz";
-            var movies = new HashSet<Movie>();
+            var movies = new List<Movie>();
             foreach (var movieParentNode in rawMoviesCollection)
             {
                 var movieNode = movieParentNode.SelectSingleNode("h3/a");
                 var movie = new Movie
                 {
-                    Title = movieNode.InnerText,
+                    Title = System.Net.WebUtility.HtmlDecode(movieNode.InnerText),
                     WebsiteUrl = new Uri(mainSiteUrl + movieNode.Attributes["href"].Value)
                 };
                     movies.Add(movie);

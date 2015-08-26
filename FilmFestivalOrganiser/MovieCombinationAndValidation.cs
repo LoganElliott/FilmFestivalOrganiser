@@ -6,7 +6,7 @@ namespace FilmFestivalOrganiser
 {
     public class MovieCombinationAndValidation
     {
-        public static IEnumerable<Movie[]> CalculateMovieCombinations(HashSet<HashSet<Movie>> inputs)
+        public static IEnumerable<Movie[]> CalculateMovieCombinations(List<List<Movie>> inputs)
         {
             var lengths = inputs.Select(i => i.Count).ToArray();
             var periods = new int[inputs.Count];
@@ -87,19 +87,19 @@ namespace FilmFestivalOrganiser
         {
             var movieStartTime = currentMovie.StartDate.TimeOfDay;
             
-            if (dayTimeFilters.DisallowedDay)
+            if (!dayTimeFilters.AllowedDay)
             {
                 return false;
             }
 
             //Does movie start to early
-            if (movieStartTime < dayTimeFilters.MinStartTime)
+            if (movieStartTime < TimeSpan.FromMilliseconds(dayTimeFilters.MinStartTime))
             {
                 return false;
             }
 
             //Does movie start or end to late
-            if (movieStartTime > dayTimeFilters.MaxEndTime || (movieStartTime + currentMovie.DurationForFilter) > dayTimeFilters.MaxEndTime)
+            if (movieStartTime > TimeSpan.FromMilliseconds(dayTimeFilters.MaxEndTime) || (movieStartTime + currentMovie.DurationForFilter) > TimeSpan.FromMilliseconds(dayTimeFilters.MaxEndTime))
             {
                 return false;
             }

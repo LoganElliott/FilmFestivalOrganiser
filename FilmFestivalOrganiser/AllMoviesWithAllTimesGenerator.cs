@@ -8,26 +8,33 @@ namespace FilmFestivalOrganiser
 {
     public class AllMoviesWithAllTimesGenerator
     {
-        public static Dictionary<string, HashSet<Movie>> GetAllMovieTimesForWishlistMovies(HashSet<Movie> moviesFromwishlist, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
+        public static Dictionary<string, List<Movie>> GetAllMovieTimesForWishlistMovies(List<Movie> moviesFromwishlist, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
-            var dictionary = new Dictionary<string, HashSet<Movie>>();
+            var dictionary = new Dictionary<string, List<Movie>>();
             foreach (var movie in moviesFromwishlist)
             {
                 var allMovieTimes = GetAllMovieTimes(movie, dayTimeFilters);
-                dictionary.Add(allMovieTimes.First().Title, allMovieTimes);
+                if (allMovieTimes.Any())
+                {
+                    dictionary.Add(allMovieTimes.First().Title, allMovieTimes);                    
+                }
+                else
+                {
+                    throw new NoSessionFoundException("The movie time filter you have applied resulted in all sessions of " + movie.Title + " falling outside of the filter time");
+                }
             }
             return dictionary;
         }
 
-        private static HashSet<Movie> GetAllMovieTimes(Movie currentwishlistMovie, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
+        private static List<Movie> GetAllMovieTimes(Movie currentwishlistMovie, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
             var web = new HtmlWeb();
-            var movieAndTimes = new HashSet<Movie>();
+            var movieAndTimes = new List<Movie>();
             var movieWebsiteDocument = web.Load(currentwishlistMovie.WebsiteUrl.ToString());
             var movieMetaDetails = movieWebsiteDocument.DocumentNode.SelectSingleNode("//*[@class='session-table']").SelectNodes("tr/td/table/tr/td/p");
             foreach (var movieMetaDetail in movieMetaDetails)
             {
-                var movie = CreateMovie(movieMetaDetail, currentwishlistMovie, dayTimeFilters);
+                var movie = CreateMovie(movieMetaDetail, currentwishlistMovie);
                 if (MovieCombinationAndValidation.MeetsDateTimeFilters(movie, dayTimeFilters[movie.StartDate.DayOfWeek]))
                 {
                     movieAndTimes.Add(movie);
@@ -36,7 +43,7 @@ namespace FilmFestivalOrganiser
             return movieAndTimes;
         }
 
-        private static Movie CreateMovie(HtmlNode movieMetaDetail, Movie movieDictionaryItem, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
+        private static Movie CreateMovie(HtmlNode movieMetaDetail, Movie movieDictionaryItem)
         {
             var location = movieMetaDetail.SelectSingleNode("span[@itemprop='location']").InnerText;
             var duration = movieMetaDetail.SelectSingleNode("meta[@itemprop='duration']").Attributes.Last().Value.Replace("PT", "").Replace("M", "");

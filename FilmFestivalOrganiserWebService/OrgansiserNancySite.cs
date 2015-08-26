@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using FilmFestivalOrganiser;
 using Nancy;
@@ -14,15 +13,25 @@ namespace FilmFestivalOrganiserWebService
         public OrgansiserNancySite()
         {
           
-           Get["/getWishlistJson/{wishlistId}"] = parameters =>
+           Post["/getWishlistJson/{wishlistId}"] = parameters =>
             {
                 StaticConfiguration.DisableErrorTraces = false;
 
                 string wishlistUrl = @"http://www.nziff.co.nz/s/" + parameters.wishlistId;
-                Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters = CreateFiltersForEachDay.CreateDayFilters(Request);
-                HashSet<Movie> moviesDictionary = GetMoviesFromWishlistUrl.GetMoviesFromWishlist(wishlistUrl);
-                Dictionary<string, HashSet<Movie>> allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary, dayTimeFilters);
-                IEnumerable<Movie[]> setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new HashSet<HashSet<Movie>>(allMoviesWithAllTimes.Values));
+                Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters = CreateFiltersForEachDay.CreateDayFilters(Request.Body);
+                List<Movie> moviesDictionary = GetMoviesFromWishlistUrl.GetMoviesFromWishlist(wishlistUrl);
+                Dictionary<string, List<Movie>> allMoviesWithAllTimes = new Dictionary<string, List<Movie>>();
+                try
+                {
+                    allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary, dayTimeFilters);
+
+                }
+                catch (NoSessionFoundException e)
+                {
+
+                    return JsonConvert.SerializeObject(Enumerable.Empty<MovieDay>());
+                }
+                IEnumerable<Movie[]> setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new List<List<Movie>>(allMoviesWithAllTimes.Values));
                 Movie[] validMovieOrder = MovieCombinationAndValidation.CheckForValidSetOfMovies(setsOfMovies, dayTimeFilters).First();
                 MovieDay[] moviesGroupedByDay = MovieCombinationAndValidation.GroupMoviesUpByDate(validMovieOrder);
                 return JsonConvert.SerializeObject(moviesGroupedByDay);
