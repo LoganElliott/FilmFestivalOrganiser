@@ -10,10 +10,12 @@ namespace FilmFestivalOrganiser
         internal TimeSpan DurationForFilter { get; set; } 
         public string Location { get; set; }
         public Uri WebsiteUrl { get; set; }
+        public Uri ThumbnailUrl { get; set; }
+        public int Year { get; set; }
 
         public override string ToString()
         {
-            return String.Format("Title: {0} Start Date: {1} Duration: {2} Location: {3} WebsiteUrl: {4}",Title, StartDate, Duration, Location, WebsiteUrl);
+            return String.Format("Title: {0} Year: {1} Start Date: {2} Duration: {3} Location: {4} WebsiteUrl: {5} ThumbnailUrl: {6}",Title, Year, StartDate, Duration, Location, WebsiteUrl, ThumbnailUrl);
         }
     }
 }

@@ -18,10 +18,6 @@ namespace FilmFestivalOrganiser
                 {
                     dictionary.Add(allMovieTimes.First().Title, allMovieTimes);                    
                 }
-                else
-                {
-                    throw new NoSessionFoundException("The movie time filter you have applied resulted in all sessions of " + movie.Title + " falling outside of the filter time");
-                }
             }
             return dictionary;
         }
@@ -34,6 +30,7 @@ namespace FilmFestivalOrganiser
             var movieMetaDetails = movieWebsiteDocument.DocumentNode.SelectSingleNode("//*[@class='session-table']").SelectNodes("tr/td/table/tr/td/p");
             foreach (var movieMetaDetail in movieMetaDetails)
             {
+                currentwishlistMovie.Year = int.Parse(movieWebsiteDocument.DocumentNode.SelectSingleNode("//*[@class='year']").InnerHtml);
                 var movie = CreateMovie(movieMetaDetail, currentwishlistMovie);
                 if (MovieCombinationAndValidation.MeetsDateTimeFilters(movie, dayTimeFilters[movie.StartDate.DayOfWeek]))
                 {
@@ -46,17 +43,19 @@ namespace FilmFestivalOrganiser
         private static Movie CreateMovie(HtmlNode movieMetaDetail, Movie movieDictionaryItem)
         {
             var location = movieMetaDetail.SelectSingleNode("span[@itemprop='location']").InnerText;
-            var duration = movieMetaDetail.SelectSingleNode("meta[@itemprop='duration']").Attributes.Last().Value.Replace("PT", "").Replace("M", "");
             var startDate = movieMetaDetail.SelectSingleNode("meta[@itemprop='startDate']").Attributes.Last().Value;
+
             
             var movie = new Movie
             {
                 Title = movieDictionaryItem.Title,
                 WebsiteUrl = movieDictionaryItem.WebsiteUrl,
                 Location = location,
-                Duration = duration,
-                DurationForFilter = TimeSpan.FromMinutes(Int64.Parse(duration)),
-                StartDate = DateTime.ParseExact(startDate, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)
+                Duration = movieDictionaryItem.Duration,
+                DurationForFilter = TimeSpan.FromMinutes(Int64.Parse(movieDictionaryItem.Duration)),
+                StartDate = DateTime.ParseExact(startDate, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture),
+                ThumbnailUrl = movieDictionaryItem.ThumbnailUrl,
+                Year = movieDictionaryItem.Year
             };
             return movie;
         }
