@@ -13,7 +13,7 @@ namespace FilmFestivalOrganiserWebService
         public OrgansiserNancySite()
         {
           
-           Post["/api/getWishlistJson/{wishlistId}"] = parameters =>
+           Post["/getWishlistJson/{wishlistId}"] = parameters =>
             {
                 StaticConfiguration.DisableErrorTraces = false;
 
@@ -37,7 +37,7 @@ namespace FilmFestivalOrganiserWebService
                 return JsonConvert.SerializeObject(moviesGroupedByDay);
             };
 
-            Get["/api/test"] = _ => "Looks like in your in the right part of town";
+            Get["/test"] = _ => "Looks like in your in the right part of town";
         }
     }
 }
