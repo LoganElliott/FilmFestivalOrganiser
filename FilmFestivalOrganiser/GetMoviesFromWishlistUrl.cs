@@ -60,11 +60,11 @@ namespace FilmFestivalOrganiser
 
         private static string CacheThumbnail(string movieName,Uri thumbnailUrl)
         {
-            var currentDir = Directory.GetParent(HttpContext.Current.Server.MapPath("")).Parent.Parent;
+            var currentDir = Directory.GetParent(HttpContext.Current.Server.MapPath("")).Parent;
             movieName = Regex.Replace(movieName, @"[^0-9a-zA-Z]+", "");
             movieName = Regex.Replace(movieName, @"\s+", "");
             movieName += ".jpg";
-            var cachedImageFile = Path.Combine(currentDir.FullName, "assets\\thumbnails\\", movieName);
+            var cachedImageFile = Path.Combine(currentDir.FullName, "assets\\images\\thumbnails\\", movieName);
             if (!File.Exists(cachedImageFile))
             {
                 using (var fs = File.Create(cachedImageFile)){}
