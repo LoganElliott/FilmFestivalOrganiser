@@ -8,18 +8,18 @@ namespace FilmFestivalOrganiser
 {
     public class AllMoviesWithAllTimesGenerator
     {
-        public static Dictionary<string, List<Movie>> GetAllMovieTimesForWishlistMovies(List<Movie> moviesFromwishlist, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
+        public static Dictionary<string, List<Movie>> GetAllMovieTimesForWishlistMovies(Dictionary<string, Movie> moviesFromWishList, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
         {
-            var dictionary = new Dictionary<string, List<Movie>>();
-            foreach (var movie in moviesFromwishlist)
+            var moviesFromWishListWithTimes = new Dictionary<string, List<Movie>>();
+            foreach (var movie in moviesFromWishList)
             {
-                var allMovieTimes = GetAllMovieTimes(movie, dayTimeFilters);
+                var allMovieTimes = GetAllMovieTimes(movie.Value, dayTimeFilters);
                 if (allMovieTimes.Any())
                 {
-                    dictionary.Add(allMovieTimes.First().Title, allMovieTimes);                    
+                    moviesFromWishListWithTimes.Add(allMovieTimes.First().Title, allMovieTimes);                    
                 }
             }
-            return dictionary;
+            return moviesFromWishListWithTimes;
         }
 
         private static List<Movie> GetAllMovieTimes(Movie currentwishlistMovie, Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters)
@@ -44,7 +44,6 @@ namespace FilmFestivalOrganiser
         {
             var location = movieMetaDetail.SelectSingleNode("span[@itemprop='location']").InnerText;
             var startDate = movieMetaDetail.SelectSingleNode("meta[@itemprop='startDate']").Attributes.Last().Value;
-
             
             var movie = new Movie
             {

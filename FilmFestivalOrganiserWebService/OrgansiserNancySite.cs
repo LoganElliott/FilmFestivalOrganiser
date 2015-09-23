@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using FilmFestivalOrganiser;
 using Nancy;
@@ -12,28 +13,34 @@ namespace FilmFestivalOrganiserWebService
         
         public OrgansiserNancySite()
         {
-          
-           Post["/getWishlistJson/{wishlistId}"] = parameters =>
+
+            Post["/getWishListJson/{wishListId}"] = parameters =>
             {
                 StaticConfiguration.DisableErrorTraces = false;
 
-                string wishlistUrl = @"http://www.nziff.co.nz/s/" + parameters.wishlistId;
+                string wishlistUrl = @"http://www.nziff.co.nz/s/" + parameters.wishListId;
+                CultureInfo cultureInfo = new CultureInfo("" + Request.Query["locale"]);
                 Dictionary<DayOfWeek, DayTimeFilter> dayTimeFilters = CreateFiltersForEachDay.CreateDayFilters(Request.Body);
-                List<Movie> moviesDictionary = GetMoviesFromWishlistUrl.GetMoviesFromWishlist(wishlistUrl);
+                Dictionary<string, Movie> moviesDictionary = GetMoviesFromWishListUrl.GetMoviesFromWishlist(wishlistUrl);
                 Dictionary<string, List<Movie>> allMoviesWithAllTimes = new Dictionary<string, List<Movie>>();
+                allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary, dayTimeFilters);
+                IEnumerable<Movie[]> setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new List<List<Movie>>(allMoviesWithAllTimes.Values));
+                Movie[] validMovieOrder;
+                var setOfValidMovies = MovieCombinationAndValidation.CheckForValidSetOfMovies(setsOfMovies,
+                    dayTimeFilters);
                 try
                 {
-                    allMoviesWithAllTimes = AllMoviesWithAllTimesGenerator.GetAllMovieTimesForWishlistMovies(moviesDictionary, dayTimeFilters);
-
+                    validMovieOrder = setOfValidMovies.FirstOrDefault();
+                    if (validMovieOrder == null)
+                    {
+                        throw new NoSessionFoundException("There was no combination of movies found that had to clashes");
+                    }                
                 }
-                catch (NoSessionFoundException e)
+                catch (NoSessionFoundException error)
                 {
-
                     return JsonConvert.SerializeObject(Enumerable.Empty<MovieDay>());
                 }
-                IEnumerable<Movie[]> setsOfMovies = MovieCombinationAndValidation.CalculateMovieCombinations(new List<List<Movie>>(allMoviesWithAllTimes.Values));
-                Movie[] validMovieOrder = MovieCombinationAndValidation.CheckForValidSetOfMovies(setsOfMovies, dayTimeFilters).First();
-                MovieDay[] moviesGroupedByDay = MovieCombinationAndValidation.GroupMoviesUpByDate(validMovieOrder);
+                MovieDay[] moviesGroupedByDay = MovieCombinationAndValidation.GroupMoviesUpByDate(validMovieOrder, cultureInfo);
                 return JsonConvert.SerializeObject(moviesGroupedByDay);
             };
 

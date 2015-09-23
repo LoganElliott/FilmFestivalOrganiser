@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
 using HtmlAgilityPack;
 
 namespace FilmFestivalOrganiser
 {
-    public class GetMoviesFromWishlistUrl
+    public class GetMoviesFromWishListUrl
     {
         private static readonly Regex _regex = new Regex(@"url\((.+)\);");
         private const string SiteUrl = @"http://www.nziff.co.nz/";
 
-        public static List<Movie> GetMoviesFromWishlist(string wishlistUrl)
+        public static Dictionary<string, Movie> GetMoviesFromWishlist(string wishlistUrl)
         {
             var web = new HtmlWeb();
             var wishListWebsitePageDocument = web.Load(wishlistUrl);
@@ -25,10 +24,10 @@ namespace FilmFestivalOrganiser
         }
 
 
-        private static List<Movie> ExtractwishlistMoviesFromHtml(HtmlNode[] rawMoviesCollection, HtmlNode[] rawThumbnailImages)
+        private static Dictionary<string, Movie> ExtractwishlistMoviesFromHtml(HtmlNode[] rawMoviesCollection, HtmlNode[] rawThumbnailImages)
         {
             var mainSiteUrl = new Uri("http://www.nziff.co.nz");
-            var movies = new List<Movie>();
+            var movies = new Dictionary<string,Movie>();
             for(int i =0;i< rawMoviesCollection.Length;i++)
             {
                 var movieParentNode = rawMoviesCollection[i];
@@ -42,7 +41,7 @@ namespace FilmFestivalOrganiser
                 var thumbnailUrlFromNzff = new Uri(SiteUrl + _regex.Match(rawThumbnailText.OuterHtml).Groups[1].Value);
                 var cachedThumnailName = CacheThumbnail(WebUtility.HtmlEncode(movieName), thumbnailUrlFromNzff);
 
-                var baseUri = new Uri("http://www.loganelliott.xyz/assets/thumbnails/");
+                var baseUri = new Uri("http://www.loganelliott.xyz/assets/images/thumbnails/");
                 var cachedThumnail = new Uri(baseUri, cachedThumnailName);
 
                 var movie = new Movie
@@ -53,7 +52,10 @@ namespace FilmFestivalOrganiser
                     Duration = duration
                     
                 };
-                    movies.Add(movie);
+                if (!movies.ContainsKey(movie.Title))
+                {
+                    movies.Add(movie.Title,movie);
+                }
             }
             return movies;
         }

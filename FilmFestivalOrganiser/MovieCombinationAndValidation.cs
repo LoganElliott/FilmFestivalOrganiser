@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace FilmFestivalOrganiser
@@ -107,9 +108,9 @@ namespace FilmFestivalOrganiser
             return true;
         }
 
-        public static MovieDay[] GroupMoviesUpByDate(Movie[] validMovieOrder)
+        public static MovieDay[] GroupMoviesUpByDate(Movie[] validMovieOrder,CultureInfo cultureInfo)
         {
-            return validMovieOrder.GroupBy(movie => movie.StartDate.Date).Select(moviesForADay => new MovieDay(moviesForADay.ToArray())).ToArray();
+            return validMovieOrder.GroupBy(movie => movie.StartDate.Date).Select(moviesForADay => new MovieDay(moviesForADay.ToArray(), cultureInfo)).ToArray();
 
         }
     }
