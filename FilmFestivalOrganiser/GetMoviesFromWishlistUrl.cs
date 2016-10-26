@@ -41,7 +41,7 @@ namespace FilmFestivalOrganiser
                 var thumbnailUrlFromNzff = new Uri(SiteUrl + _regex.Match(rawThumbnailText.OuterHtml).Groups[1].Value);
                 var cachedThumnailName = CacheThumbnail(WebUtility.HtmlEncode(movieName), thumbnailUrlFromNzff);
 
-                var baseUri = new Uri("http://www.loganelliott.xyz/assets/images/thumbnails/");
+                var baseUri = new Uri("http://www.loganelliott.space/assets/images/thumbnails/");
                 var cachedThumnail = new Uri(baseUri, cachedThumnailName);
 
                 var movie = new Movie
